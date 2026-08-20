@@ -11,7 +11,9 @@ import GoodsRepricing from './components/GoodsRepricing';
 import GoodsWriteoff from './components/GoodsWriteoff';
 import GoodsSuppliers from './components/GoodsSuppliers';
 import SalesNew from './components/SalesNew';
+import SalesAll from './components/SalesAll';
 import CashShifts from './components/CashShifts';
+import CashOperations from './components/CashOperations';
 import ClientsAll from './components/ClientsAll';
 import ClientsGroups from './components/ClientsGroups';
 
@@ -37,7 +39,9 @@ function App() {
             
             <Route path="/sales" element={<Navigate to="/sales/new" replace />} />
             <Route path="/sales/new" element={<SalesNew />} />
+            <Route path="/sales/all" element={<SalesAll />} />
             <Route path="/sales/shifts" element={<CashShifts />} />
+            <Route path="/sales/operations" element={<CashOperations />} />
             
             <Route path="/clients" element={<Navigate to="/clients/all" replace />} />
             <Route path="/clients/all" element={<ClientsAll />} />

@@ -1,8 +1,66 @@
+import { useState, useEffect } from 'react';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const GoodsCreate = () => {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    sku: '',
+    barcode: '',
+    price: '',
+    costPrice: '',
+    stock: '',
+    categoryId: ''
+  });
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleGenerateStr = (field) => {
+    const randomStr = Math.floor(10000000 + Math.random() * 90000000).toString();
+    setFormData({ ...formData, [field]: randomStr });
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.sku) {
+      alert('Пожалуйста, заполните обязательные поля (Наименование и Артикул)');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        navigate('/goods/catalog');
+      } else {
+        alert('Ошибка при создании товара');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Сетевая ошибка');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh', width: '100vw', display: 'flex', flexDirection: 'column' }}>
@@ -12,24 +70,16 @@ const GoodsCreate = () => {
           <button 
             onClick={() => navigate('/goods/catalog')}
             style={{ 
-              background: '#f0f4f8', 
-              border: 'none', 
-              width: '40px', 
-              height: '40px', 
-              borderRadius: '50%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              cursor: 'pointer',
-              color: 'var(--primary-color)'
+              background: '#f0f4f8', border: 'none', width: '40px', height: '40px', borderRadius: '50%', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--primary-color)'
             }}
           >
             <ChevronLeft size={24} />
           </button>
           <h1 style={{ fontSize: '1.75rem', fontWeight: '700', margin: 0 }}>Новый продукт</h1>
         </div>
-        <button className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '1rem', fontWeight: '600' }}>
-          Создать
+        <button className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '1rem', fontWeight: '600' }} onClick={handleSubmit} disabled={isLoading}>
+          {isLoading ? 'Сохранение...' : 'Создать'}
         </button>
       </div>
 
@@ -42,67 +92,36 @@ const GoodsCreate = () => {
             <div style={{ padding: '12px 24px', color: 'var(--primary-color)', fontWeight: '600', cursor: 'pointer' }}>Основные</div>
             <div style={{ padding: '12px 24px', color: 'var(--text-muted)', cursor: 'pointer' }}>Цены</div>
             <div style={{ padding: '12px 24px', color: 'var(--text-muted)', cursor: 'pointer' }}>Остатки</div>
-            <div style={{ padding: '12px 24px', color: 'var(--text-muted)', cursor: 'pointer' }}>Характеристики</div>
           </div>
         </div>
 
         {/* Form Content */}
-        <div style={{ flexGrow: 1, maxWidth: '800px' }}>
+        <div style={{ flexGrow: 1, maxWidth: '800px', paddingBottom: '100px' }}>
+          
+          {/* ОСНОВНЫЕ */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>Основные</h2>
             <div style={{ flexGrow: 1, height: '1px', borderBottom: '1px dashed var(--border-color)' }}></div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            
-            {/* Тип продукта */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>
-                Тип продукта
-              </label>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button className="btn btn-primary" style={{ flex: 1, justifyContent: 'flex-start', padding: '12px 16px' }}>
-                  <CheckCircle2 size={18} style={{ marginRight: '8px' }} /> Товар
-                </button>
-                <div style={{ flex: 1, position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: '-30px', left: '50%', transform: 'translateX(-50%)', background: '#e2e8f0', color: '#fff', padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                    Продукт, не имеющий остатков
-                  </div>
-                  <button className="btn" style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 16px', color: 'var(--text-muted)', background: '#f7f9fa', borderColor: 'transparent' }} disabled>
-                    <span style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid #cbd5e0', marginRight: '8px' }}></span> Услуга
-                  </button>
-                </div>
-                <button className="btn" style={{ flex: 1, justifyContent: 'flex-start', padding: '12px 16px', color: 'var(--text-main)', background: '#fff' }}>
-                  <span style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid #cbd5e0', marginRight: '8px' }}></span> Комплект
-                </button>
-              </div>
-            </div>
-
-            {/* Вариативность продукта */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>
-                Вариативность продукта
-              </label>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button className="btn btn-primary" style={{ flex: 1, justifyContent: 'flex-start', padding: '12px 16px' }}>
-                  <CheckCircle2 size={18} style={{ marginRight: '8px' }} /> Простой
-                </button>
-                <button className="btn" style={{ flex: 1, justifyContent: 'flex-start', padding: '12px 16px', color: 'var(--text-main)', background: '#fff' }}>
-                  <span style={{ width: '18px', height: '18px', borderRadius: '50%', border: '2px solid #cbd5e0', marginRight: '8px' }}></span> Вариативный
-                </button>
-              </div>
-            </div>
-
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginBottom: '48px' }}>
             {/* Наименование */}
             <div>
               <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>
                 Наименование <span style={{ color: 'var(--danger-color)' }}>*</span>
               </label>
-              <input 
-                type="text" 
-                placeholder="Введите наименование" 
-                style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} 
-              />
+              <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Введите наименование" style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} />
+            </div>
+
+            {/* Категория */}
+            <div>
+              <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>Категория</label>
+              <select name="categoryId" value={formData.categoryId} onChange={handleChange} style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }}>
+                <option value="">Выберите категорию</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Артикул & Баркод */}
@@ -112,46 +131,50 @@ const GoodsCreate = () => {
                   Артикул <span style={{ color: 'var(--danger-color)' }}>*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <input 
-                    type="text" 
-                    placeholder="Введите артикул" 
-                    style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} 
-                  />
-                  <button style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--primary-color)', fontWeight: '600', cursor: 'pointer' }}>
-                    Генерировать
-                  </button>
+                  <input type="text" name="sku" value={formData.sku} onChange={handleChange} placeholder="Введите артикул" style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} />
+                  <button onClick={() => handleGenerateStr('sku')} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--primary-color)', fontWeight: '600', cursor: 'pointer' }}>Генерировать</button>
                 </div>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>
-                  Баркод <span style={{ color: 'var(--danger-color)' }}>*</span>
-                </label>
+                <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>Баркод</label>
                 <div style={{ position: 'relative' }}>
-                  <input 
-                    type="text" 
-                    placeholder="Введите баркод" 
-                    style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} 
-                  />
-                  <button style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--primary-color)', fontWeight: '600', cursor: 'pointer' }}>
-                    Генерировать
-                  </button>
+                  <input type="text" name="barcode" value={formData.barcode} onChange={handleChange} placeholder="Введите баркод" style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} />
+                  <button onClick={() => handleGenerateStr('barcode')} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--primary-color)', fontWeight: '600', cursor: 'pointer' }}>Генерировать</button>
                 </div>
               </div>
             </div>
-
-            {/* Единица измерения */}
-            <div>
-              <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>
-                Единица измерения
-              </label>
-              <input 
-                type="text" 
-                placeholder="Шт" 
-                style={{ width: '50%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} 
-              />
-            </div>
-
           </div>
+
+          {/* ЦЕНЫ */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>Цены</h2>
+            <div style={{ flexGrow: 1, height: '1px', borderBottom: '1px dashed var(--border-color)' }}></div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '24px', marginBottom: '48px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>Цена продажи</label>
+              <input type="number" name="price" value={formData.price} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>Себестоимость</label>
+              <input type="number" name="costPrice" value={formData.costPrice} onChange={handleChange} placeholder="0" style={{ width: '100%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} />
+            </div>
+          </div>
+
+          {/* ОСТАТКИ */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>Остатки (Начальный запас)</h2>
+            <div style={{ flexGrow: 1, height: '1px', borderBottom: '1px dashed var(--border-color)' }}></div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '24px', marginBottom: '48px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '500' }}>Количество на складе</label>
+              <input type="number" name="stock" value={formData.stock} onChange={handleChange} placeholder="0" style={{ width: '50%', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)', background: '#f7f9fa', fontSize: '1rem', outline: 'none' }} />
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

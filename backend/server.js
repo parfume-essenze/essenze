@@ -83,8 +83,8 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
-// React app catch-all handler
-app.get('*', (req, res) => {
+// React app catch-all handler (SPA routing)
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 

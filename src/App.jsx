@@ -6,6 +6,7 @@ import GoodsCreate from './components/GoodsCreate';
 import SalesNew from './components/SalesNew';
 import CashShifts from './components/CashShifts';
 import ClientsAll from './components/ClientsAll';
+import ClientsGroups from './components/ClientsGroups';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             
             <Route path="/clients" element={<Navigate to="/clients/all" replace />} />
             <Route path="/clients/all" element={<ClientsAll />} />
+            <Route path="/clients/groups" element={<ClientsGroups />} />
             
             {/* Other routes can be added here later */}
             <Route path="*" element={<div style={{padding: 30}}>Page under construction</div>} />

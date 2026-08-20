@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Search,
   Filter,
@@ -20,7 +20,26 @@ import { catalogData } from '../data/catalogData';
 
 const GoodsCatalog = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleRowClick = (product) => {
     setSelectedProduct(product);
@@ -85,22 +104,28 @@ const GoodsCatalog = () => {
               </tr>
             </thead>
             <tbody>
-              {catalogData.map((item) => (
-                <tr key={item.id} onClick={() => handleRowClick(item)} style={{cursor: 'pointer'}}>
-                  <td onClick={e => e.stopPropagation()}><input type="checkbox" /></td>
-                  <td>
-                    <div className="img-placeholder">
-                      <ImageIcon size={16} color="#a0aec0" />
-                    </div>
-                  </td>
-                  <td style={{color: 'var(--primary-color)', fontWeight: '500'}}>{item.name}</td>
-                  <td>{item.article}</td>
-                  <td>{item.barcode}</td>
-                  <td>{item.category}</td>
-                  <td>{item.supplier}</td>
-                  <td onClick={e => e.stopPropagation()}></td>
-                </tr>
-              ))}
+              {isLoading ? (
+                <tr><td colSpan="8" style={{textAlign: 'center', padding: '20px'}}>Загрузка товаров...</td></tr>
+              ) : products.length === 0 ? (
+                <tr><td colSpan="8" style={{textAlign: 'center', padding: '20px'}}>Товары не найдены</td></tr>
+              ) : (
+                products.map((item) => (
+                  <tr key={item.id} onClick={() => handleRowClick(item)} style={{cursor: 'pointer'}}>
+                    <td onClick={e => e.stopPropagation()}><input type="checkbox" /></td>
+                    <td>
+                      <div className="img-placeholder">
+                        <ImageIcon size={16} color="#a0aec0" />
+                      </div>
+                    </td>
+                    <td style={{color: 'var(--primary-color)', fontWeight: '500'}}>{item.name}</td>
+                    <td>{item.sku}</td>
+                    <td>{item.barcode || '-'}</td>
+                    <td>{item.category?.name || 'Без категории'}</td>
+                    <td>-</td>
+                    <td style={{textAlign: 'center'}}><Settings size={16} color="#a0aec0" /></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

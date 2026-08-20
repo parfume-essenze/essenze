@@ -3,6 +3,13 @@ import Sidebar from './components/Sidebar';
 import FinanceDashboard from './components/FinanceDashboard';
 import GoodsCatalog from './components/GoodsCatalog';
 import GoodsCreate from './components/GoodsCreate';
+import GoodsImport from './components/GoodsImport';
+import GoodsOrders from './components/GoodsOrders';
+import GoodsInventory from './components/GoodsInventory';
+import GoodsTransfer from './components/GoodsTransfer';
+import GoodsRepricing from './components/GoodsRepricing';
+import GoodsWriteoff from './components/GoodsWriteoff';
+import GoodsSuppliers from './components/GoodsSuppliers';
 import SalesNew from './components/SalesNew';
 import CashShifts from './components/CashShifts';
 import ClientsAll from './components/ClientsAll';
@@ -20,6 +27,14 @@ function App() {
             <Route path="/goods" element={<Navigate to="/goods/catalog" replace />} />
             <Route path="/goods/catalog" element={<GoodsCatalog />} />
             <Route path="/goods/create" element={<GoodsCreate />} />
+            <Route path="/goods/import" element={<GoodsImport />} />
+            <Route path="/goods/orders" element={<GoodsOrders />} />
+            <Route path="/goods/inventory" element={<GoodsInventory />} />
+            <Route path="/goods/transfer" element={<GoodsTransfer />} />
+            <Route path="/goods/repricing" element={<GoodsRepricing />} />
+            <Route path="/goods/writeoff" element={<GoodsWriteoff />} />
+            <Route path="/goods/suppliers" element={<GoodsSuppliers />} />
+            
             <Route path="/sales" element={<Navigate to="/sales/new" replace />} />
             <Route path="/sales/new" element={<SalesNew />} />
             <Route path="/sales/shifts" element={<CashShifts />} />

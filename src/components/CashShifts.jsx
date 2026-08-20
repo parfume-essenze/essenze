@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { ChevronLeft, FileText, ArrowRight } from 'lucide-react';
 
 const CashShifts = () => {

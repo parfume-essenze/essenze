@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "lint": "oxlint",
+    "build": "npm install && vite build && cd backend && npm install && npx prisma generate",
+    "start": "cd backend && npx prisma db push && node server.js",
+    "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {

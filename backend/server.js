@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { PrismaClient } = require('@prisma/client');
 
 const app = express();
@@ -8,6 +9,9 @@ const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, '../dist')));
 
 // === CATEGORIES API ===
 
@@ -77,6 +81,11 @@ app.delete('/api/products/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete product' });
   }
+});
+
+// React app catch-all handler
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
 app.listen(PORT, () => {

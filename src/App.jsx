@@ -35,6 +35,8 @@ import SettingsIntegrations from './components/SettingsIntegrations';
 function IntroVideo({ onFinish }) {
   const videoRef = useRef(null);
   const [fadeOut, setFadeOut] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const [started, setStarted] = useState(false);
 
   const handleEnd = () => {
     setFadeOut(true);
@@ -46,14 +48,45 @@ function IntroVideo({ onFinish }) {
     setTimeout(() => onFinish(), 800);
   };
 
-  useEffect(() => {
+  // Try to unmute and play with sound on first user interaction
+  const handleUnmute = () => {
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current.muted = false;
+      setMuted(false);
+    }
+  };
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.muted = true;
+    const playPromise = vid.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => setStarted(true))
+        .catch(() => {
+          // If autoplay blocked even muted, show a play button
+          setStarted(false);
+        });
     }
   }, []);
 
+  const handleOverlayClick = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (!started) {
+      vid.play().then(() => setStarted(true)).catch(() => {});
+    }
+    // Try to unmute on click
+    try {
+      vid.muted = false;
+      setMuted(false);
+    } catch(e) {}
+  };
+
   return (
     <div
+      onClick={handleOverlayClick}
       style={{
         position: 'fixed',
         inset: 0,
@@ -62,6 +95,7 @@ function IntroVideo({ onFinish }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        cursor: 'pointer',
         opacity: fadeOut ? 0 : 1,
         transition: 'opacity 0.8s ease',
       }}
@@ -71,17 +105,65 @@ function IntroVideo({ onFinish }) {
         src="/video.mp4"
         onEnded={handleEnd}
         autoPlay
+        muted
         playsInline
         style={{
           width: '100%',
           height: '100%',
           objectFit: 'cover',
           display: 'block',
+          pointerEvents: 'none',
         }}
       />
+
+      {/* Sound toggle hint */}
+      {muted && started && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '32px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,0.55)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            color: '#fff',
+            padding: '8px 22px',
+            borderRadius: '32px',
+            fontSize: '0.88rem',
+            fontWeight: '500',
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          🔇 Ovozni yoqish uchun ekranga bosing
+        </div>
+      )}
+
+      {/* Not started: big play button */}
+      {!started && (
+        <div style={{
+          position: 'absolute',
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.2)',
+          backdropFilter: 'blur(12px)',
+          border: '2px solid rgba(255,255,255,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '2rem',
+        }}>
+          ▶
+        </div>
+      )}
+
       {/* Skip button */}
       <button
-        onClick={handleSkip}
+        onClick={e => { e.stopPropagation(); handleSkip(); }}
         style={{
           position: 'absolute',
           bottom: '40px',

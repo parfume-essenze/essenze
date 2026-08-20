@@ -34,68 +34,152 @@ import SettingsIntegrations from './components/SettingsIntegrations';
 
 function IntroVideo({ onFinish }) {
   const videoRef = useRef(null);
+  const [phase, setPhase] = useState('splash'); // 'splash' | 'video' | 'done'
   const [fadeOut, setFadeOut] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [started, setStarted] = useState(false);
+
+  const handleSplashClick = () => {
+    setPhase('video');
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.muted = false;
+        videoRef.current.volume = 1;
+        videoRef.current.play().catch(() => {});
+      }
+    }, 50);
+  };
 
   const handleEnd = () => {
     setFadeOut(true);
     setTimeout(() => onFinish(), 800);
   };
 
-  const handleSkip = () => {
+  const handleSkip = (e) => {
+    e.stopPropagation();
     setFadeOut(true);
     setTimeout(() => onFinish(), 800);
   };
 
-  // Try to unmute and play with sound on first user interaction
-  const handleUnmute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      setMuted(false);
-    }
-  };
+  // Splash screen
+  if (phase === 'splash') {
+    return (
+      <div
+        onClick={handleSplashClick}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          background: 'radial-gradient(ellipse at center, #0a0a1a 0%, #000 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        {/* Animated glow rings */}
+        <div style={{
+          position: 'absolute',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          border: '1px solid rgba(255,255,255,0.06)',
+          animation: 'pulse-ring 3s ease-in-out infinite',
+        }} />
+        <div style={{
+          position: 'absolute',
+          width: '350px',
+          height: '350px',
+          borderRadius: '50%',
+          border: '1px solid rgba(255,255,255,0.1)',
+          animation: 'pulse-ring 3s ease-in-out infinite 0.5s',
+        }} />
+        <div style={{
+          position: 'absolute',
+          width: '200px',
+          height: '200px',
+          borderRadius: '50%',
+          border: '1px solid rgba(255,255,255,0.15)',
+          animation: 'pulse-ring 3s ease-in-out infinite 1s',
+        }} />
 
-  useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid) return;
-    vid.muted = true;
-    const playPromise = vid.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => setStarted(true))
-        .catch(() => {
-          // If autoplay blocked even muted, show a play button
-          setStarted(false);
-        });
-    }
-  }, []);
+        {/* Logo / Brand */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '16px',
+          zIndex: 1,
+        }}>
+          <div style={{
+            fontSize: '5rem',
+            fontWeight: '800',
+            letterSpacing: '0.3em',
+            color: '#fff',
+            textTransform: 'uppercase',
+            fontFamily: '"Georgia", serif',
+            textShadow: '0 0 60px rgba(255,255,255,0.3)',
+          }}>
+            ESSENZE
+          </div>
+          <div style={{
+            width: '60px',
+            height: '1px',
+            background: 'rgba(255,255,255,0.4)',
+          }} />
+          <div style={{
+            fontSize: '0.85rem',
+            letterSpacing: '0.4em',
+            color: 'rgba(255,255,255,0.5)',
+            textTransform: 'uppercase',
+          }}>
+            Premium Parfumeria
+          </div>
+        </div>
 
-  const handleOverlayClick = () => {
-    const vid = videoRef.current;
-    if (!vid) return;
-    if (!started) {
-      vid.play().then(() => setStarted(true)).catch(() => {});
-    }
-    // Try to unmute on click
-    try {
-      vid.muted = false;
-      setMuted(false);
-    } catch(e) {}
-  };
+        {/* Click prompt */}
+        <div style={{
+          position: 'absolute',
+          bottom: '60px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '12px',
+          animation: 'fade-bounce 2s ease-in-out infinite',
+        }}>
+          <div style={{
+            fontSize: '0.8rem',
+            letterSpacing: '0.3em',
+            color: 'rgba(255,255,255,0.45)',
+            textTransform: 'uppercase',
+          }}>
+            Bosing
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1.2rem' }}>↓</div>
+        </div>
 
+        <style>{`
+          @keyframes pulse-ring {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 1; }
+          }
+          @keyframes fade-bounce {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(6px); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Video screen
   return (
     <div
-      onClick={handleOverlayClick}
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
         background: '#000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
         opacity: fadeOut ? 0 : 1,
         transition: 'opacity 0.8s ease',
       }}
@@ -105,65 +189,17 @@ function IntroVideo({ onFinish }) {
         src="/video.mp4"
         onEnded={handleEnd}
         autoPlay
-        muted
         playsInline
         style={{
           width: '100%',
           height: '100%',
           objectFit: 'cover',
           display: 'block',
-          pointerEvents: 'none',
         }}
       />
-
-      {/* Sound toggle hint */}
-      {muted && started && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '32px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(0,0,0,0.55)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: '#fff',
-            padding: '8px 22px',
-            borderRadius: '32px',
-            fontSize: '0.88rem',
-            fontWeight: '500',
-            pointerEvents: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          🔇 Ovozni yoqish uchun ekranga bosing
-        </div>
-      )}
-
-      {/* Not started: big play button */}
-      {!started && (
-        <div style={{
-          position: 'absolute',
-          width: '80px',
-          height: '80px',
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(12px)',
-          border: '2px solid rgba(255,255,255,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '2rem',
-        }}>
-          ▶
-        </div>
-      )}
-
       {/* Skip button */}
       <button
-        onClick={e => { e.stopPropagation(); handleSkip(); }}
+        onClick={handleSkip}
         style={{
           position: 'absolute',
           bottom: '40px',
@@ -178,7 +214,6 @@ function IntroVideo({ onFinish }) {
           fontWeight: '600',
           cursor: 'pointer',
           letterSpacing: '0.5px',
-          transition: 'background 0.2s',
         }}
         onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.28)'}
         onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.15)'}

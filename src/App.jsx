@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import FinanceDashboard from './components/FinanceDashboard';
@@ -31,12 +32,92 @@ import SettingsGeneral from './components/SettingsGeneral';
 import SettingsReceipt from './components/SettingsReceipt';
 import SettingsIntegrations from './components/SettingsIntegrations';
 
-function App() {
+function IntroVideo({ onFinish }) {
+  const videoRef = useRef(null);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  const handleEnd = () => {
+    setFadeOut(true);
+    setTimeout(() => onFinish(), 800);
+  };
+
+  const handleSkip = () => {
+    setFadeOut(true);
+    setTimeout(() => onFinish(), 800);
+  };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
+
   return (
-    <Router>
-      <div id="app-layout" style={{ display: 'flex', height: '100vh', width: '100vw' }}>
-        <Sidebar />
-        <main className="main-content">
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        background: '#000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: fadeOut ? 0 : 1,
+        transition: 'opacity 0.8s ease',
+      }}
+    >
+      <video
+        ref={videoRef}
+        src="/video.mp4"
+        onEnded={handleEnd}
+        autoPlay
+        playsInline
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
+        }}
+      />
+      {/* Skip button */}
+      <button
+        onClick={handleSkip}
+        style={{
+          position: 'absolute',
+          bottom: '40px',
+          right: '48px',
+          background: 'rgba(255,255,255,0.15)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.3)',
+          color: '#fff',
+          padding: '10px 28px',
+          borderRadius: '32px',
+          fontSize: '0.95rem',
+          fontWeight: '600',
+          cursor: 'pointer',
+          letterSpacing: '0.5px',
+          transition: 'background 0.2s',
+        }}
+        onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.28)'}
+        onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.15)'}
+      >
+        O'tkazib yuborish ›
+      </button>
+    </div>
+  );
+}
+
+function App() {
+  const [showIntro, setShowIntro] = useState(true);
+
+
+  return (
+    <>
+      {showIntro && <IntroVideo onFinish={() => setShowIntro(false)} />}
+      <Router>
+        <div id="app-layout" style={{ display: 'flex', height: '100vh', width: '100vw' }}>
+          <Sidebar />
+          <main className="main-content">
           <Routes>
             <Route path="/" element={<Navigate to="/finance" replace />} />
             <Route path="/finance" element={<FinanceDashboard />} />
@@ -88,9 +169,10 @@ function App() {
             {/* Other routes can be added here later */}
             <Route path="*" element={<div style={{padding: 30}}>Page under construction</div>} />
           </Routes>
-        </main>
-      </div>
-    </Router>
+          </main>
+        </div>
+      </Router>
+    </>
   );
 }
 

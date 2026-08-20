@@ -538,3 +538,31 @@ body {
   gap: 8px;
   font-size: 0.9rem;
 }
+
+/* Dashboard Common Layout */
+.finance-dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.dashboard-header {
+  padding: 24px 32px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dashboard-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dashboard-content {
+  padding: 24px 32px 32px;
+  flex-grow: 1;
+  overflow-y: auto;
+}

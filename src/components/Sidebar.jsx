@@ -19,6 +19,7 @@ const Sidebar = () => {
   
   const isGoodsSection = location.pathname.startsWith('/goods');
   const isSalesSection = location.pathname.startsWith('/sales');
+  const isClientsSection = location.pathname.startsWith('/clients');
 
   if (location.pathname === '/goods/create') {
     return null;
@@ -52,6 +53,13 @@ const Sidebar = () => {
     { name: 'Все продажи', path: '/sales/all' },
     { name: 'Кассовые смены', path: '/sales/shifts' },
     { name: 'Кассовые операции', path: '/sales/operations' },
+  ];
+
+  const clientsMenu = [
+    { name: 'Все клиенты', path: '/clients/all' },
+    { name: 'Группы и теги', path: '/clients/groups' },
+    { name: 'Программа лояльности', path: '/clients/loyalty' },
+    { name: 'Долги', path: '/clients/debts' },
   ];
 
   return (
@@ -114,6 +122,31 @@ const Sidebar = () => {
                 </NavLink>
               ))}
             </div>
+          </>
+        ) : isClientsSection ? (
+          <>
+            <div 
+              className="nav-item back-btn" 
+              onClick={() => navigate('/finance')}
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <div className="nav-item-left">
+                <span className="nav-icon"><ChevronLeft size={18} /></span>
+                Клиенты
+              </div>
+            </div>
+            
+            {clientsMenu.map(item => (
+              <NavLink 
+                key={item.name} 
+                to={item.path} 
+                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              >
+                <div className="nav-item-left">
+                  {item.name}
+                </div>
+              </NavLink>
+            ))}
           </>
         ) : (
           mainMenu.map((item, index) => (

@@ -20,6 +20,11 @@ const Sidebar = () => {
   const isGoodsSection = location.pathname.startsWith('/goods');
   const isSalesSection = location.pathname.startsWith('/sales');
   const isClientsSection = location.pathname.startsWith('/clients');
+  const isMarketingSection = location.pathname.startsWith('/marketing');
+  const isReportsSection = location.pathname.startsWith('/reports');
+  const isFinancingSection = location.pathname.startsWith('/financing');
+  const isManagementSection = location.pathname.startsWith('/management');
+  const isSettingsSection = location.pathname.startsWith('/settings');
 
   if (location.pathname === '/goods/create') {
     return null;
@@ -61,6 +66,60 @@ const Sidebar = () => {
     { name: 'Программа лояльности', path: '/clients/loyalty' },
     { name: 'Долги', path: '/clients/debts' },
   ];
+
+  const marketingMenu = [
+    { name: 'Акции и скидки', path: '/marketing/promotions' },
+    { name: 'SMS-рассылки', path: '/marketing/sms' },
+  ];
+
+  const reportsMenu = [
+    { name: 'По продажам', path: '/reports/sales' },
+    { name: 'По товарам', path: '/reports/goods' },
+    { name: 'По сотрудникам', path: '/reports/employees' },
+  ];
+
+  const financingMenu = [
+    { name: 'Управление', path: '/financing/manage' },
+  ];
+
+  const managementMenu = [
+    { name: 'Сотрудники', path: '/management/employees' },
+    { name: 'Магазины', path: '/management/shops' },
+    { name: 'Роли и права', path: '/management/roles' },
+  ];
+
+  const settingsMenu = [
+    { name: 'Общие настройки', path: '/settings/general' },
+    { name: 'Настройка чека', path: '/settings/receipt' },
+    { name: 'Интеграции', path: '/settings/integrations' },
+  ];
+
+  const renderSubMenu = (menuData, title, backPath) => (
+    <>
+      <div 
+        className="nav-item back-btn" 
+        onClick={() => navigate(backPath)}
+        style={{ color: 'var(--text-muted)' }}
+      >
+        <div className="nav-item-left">
+          <span className="nav-icon"><ChevronLeft size={18} /></span>
+          {title}
+        </div>
+      </div>
+      
+      {menuData.map(item => (
+        <NavLink 
+          key={item.name} 
+          to={item.path} 
+          className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+        >
+          <div className="nav-item-left">
+            {item.name}
+          </div>
+        </NavLink>
+      ))}
+    </>
+  );
 
   return (
     <aside className="sidebar">
@@ -123,32 +182,13 @@ const Sidebar = () => {
               ))}
             </div>
           </>
-        ) : isClientsSection ? (
-          <>
-            <div 
-              className="nav-item back-btn" 
-              onClick={() => navigate('/finance')}
-              style={{ color: 'var(--text-muted)' }}
-            >
-              <div className="nav-item-left">
-                <span className="nav-icon"><ChevronLeft size={18} /></span>
-                Клиенты
-              </div>
-            </div>
-            
-            {clientsMenu.map(item => (
-              <NavLink 
-                key={item.name} 
-                to={item.path} 
-                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-              >
-                <div className="nav-item-left">
-                  {item.name}
-                </div>
-              </NavLink>
-            ))}
-          </>
-        ) : (
+        ) : isClientsSection ? renderSubMenu(clientsMenu, 'Клиенты', '/finance')
+          : isMarketingSection ? renderSubMenu(marketingMenu, 'Маркетинг', '/finance')
+          : isReportsSection ? renderSubMenu(reportsMenu, 'Отчеты', '/finance')
+          : isFinancingSection ? renderSubMenu(financingMenu, 'Финансирование', '/finance')
+          : isManagementSection ? renderSubMenu(managementMenu, 'Управление', '/finance')
+          : isSettingsSection ? renderSubMenu(settingsMenu, 'Настройки', '/finance')
+          : (
           mainMenu.map((item, index) => (
             <NavLink 
               to={item.path} 

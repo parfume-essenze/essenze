@@ -16,6 +16,20 @@ import CashShifts from './components/CashShifts';
 import CashOperations from './components/CashOperations';
 import ClientsAll from './components/ClientsAll';
 import ClientsGroups from './components/ClientsGroups';
+import ClientsLoyalty from './components/ClientsLoyalty';
+import ClientsDebts from './components/ClientsDebts';
+import MarketingPromotions from './components/MarketingPromotions';
+import MarketingSms from './components/MarketingSms';
+import ReportsSales from './components/ReportsSales';
+import ReportsGoods from './components/ReportsGoods';
+import ReportsEmployees from './components/ReportsEmployees';
+import Financing from './components/Financing';
+import ManagementEmployees from './components/ManagementEmployees';
+import ManagementShops from './components/ManagementShops';
+import ManagementRoles from './components/ManagementRoles';
+import SettingsGeneral from './components/SettingsGeneral';
+import SettingsReceipt from './components/SettingsReceipt';
+import SettingsIntegrations from './components/SettingsIntegrations';
 
 function App() {
   return (
@@ -46,6 +60,30 @@ function App() {
             <Route path="/clients" element={<Navigate to="/clients/all" replace />} />
             <Route path="/clients/all" element={<ClientsAll />} />
             <Route path="/clients/groups" element={<ClientsGroups />} />
+            <Route path="/clients/loyalty" element={<ClientsLoyalty />} />
+            <Route path="/clients/debts" element={<ClientsDebts />} />
+
+            <Route path="/marketing" element={<Navigate to="/marketing/promotions" replace />} />
+            <Route path="/marketing/promotions" element={<MarketingPromotions />} />
+            <Route path="/marketing/sms" element={<MarketingSms />} />
+
+            <Route path="/reports" element={<Navigate to="/reports/sales" replace />} />
+            <Route path="/reports/sales" element={<ReportsSales />} />
+            <Route path="/reports/goods" element={<ReportsGoods />} />
+            <Route path="/reports/employees" element={<ReportsEmployees />} />
+
+            <Route path="/financing" element={<Navigate to="/financing/manage" replace />} />
+            <Route path="/financing/manage" element={<Financing />} />
+
+            <Route path="/management" element={<Navigate to="/management/employees" replace />} />
+            <Route path="/management/employees" element={<ManagementEmployees />} />
+            <Route path="/management/shops" element={<ManagementShops />} />
+            <Route path="/management/roles" element={<ManagementRoles />} />
+
+            <Route path="/settings" element={<Navigate to="/settings/general" replace />} />
+            <Route path="/settings/general" element={<SettingsGeneral />} />
+            <Route path="/settings/receipt" element={<SettingsReceipt />} />
+            <Route path="/settings/integrations" element={<SettingsIntegrations />} />
             
             {/* Other routes can be added here later */}
             <Route path="*" element={<div style={{padding: 30}}>Page under construction</div>} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -11,17 +11,28 @@ import {
 } from 'lucide-react';
 import ClientCreateDrawer from './ClientCreateDrawer';
 
-const mockClients = [
-  { id: 1, name: 'Ivan Ivanov', phone: '+998 90 123 45 67', balance: '0 UZS', totalSpent: '0 UZS', discount: '0%', lastPurchase: '-', registrationDate: '20.08.2026' },
-  { id: 2, name: 'Aziza Aliyeva', phone: '+998 90 987 65 43', balance: '50 000 UZS', totalSpent: '1 200 000 UZS', discount: '5%', lastPurchase: '15.08.2026', registrationDate: '10.01.2026' },
-  { id: 3, name: 'Baxrom Soliyev', phone: '+998 99 111 22 33', balance: '0 UZS', totalSpent: '450 000 UZS', discount: '0%', lastPurchase: '01.07.2026', registrationDate: '05.05.2026' },
-  { id: 4, name: 'Dilshod Rahmatov', phone: '+998 97 777 88 99', balance: '-100 000 UZS', totalSpent: '3 500 000 UZS', discount: '10%', lastPurchase: '18.08.2026', registrationDate: '12.12.2025' },
-  { id: 5, name: 'Nigina Toirova', phone: '+998 93 444 55 66', balance: '20 000 UZS', totalSpent: '890 000 UZS', discount: '3%', lastPurchase: '20.07.2026', registrationDate: '01.03.2026' },
-];
+
 
 const ClientsAll = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false);
+  const [clients, setClients] = useState([]);
+  
+  const fetchClients = () => {
+    fetch('/api/clients')
+      .then(res => res.json())
+      .then(data => setClients(data))
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  const filteredClients = clients.filter(c => 
+    c.firstName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    c.phone.includes(searchTerm)
+  );
 
   return (
     <div className="finance-dashboard">
@@ -86,18 +97,18 @@ const ClientsAll = () => {
               </tr>
             </thead>
             <tbody>
-              {mockClients.map(client => (
+              {filteredClients.map(client => (
                 <tr key={client.id} className="table-row">
                   <td><input type="checkbox" /></td>
-                  <td style={{ fontWeight: 500, color: 'var(--primary-color)' }}>{client.name}</td>
+                  <td style={{ fontWeight: 500, color: 'var(--primary-color)' }}>{client.firstName} {client.lastName || ''}</td>
                   <td>{client.phone}</td>
                   <td style={{ color: client.balance.includes('-') ? '#ef4444' : client.balance !== '0 UZS' ? '#10b981' : 'inherit' }}>
                     {client.balance}
                   </td>
-                  <td>{client.totalSpent}</td>
-                  <td>{client.discount}</td>
-                  <td>{client.lastPurchase}</td>
-                  <td>{client.registrationDate}</td>
+                  <td>0 UZS</td>
+                  <td>0%</td>
+                  <td>-</td>
+                  <td>{new Date(client.createdAt).toLocaleDateString()}</td>
                   <td>
                     <button className="icon-btn" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
                       <MoreVertical size={16} />
@@ -122,7 +133,7 @@ const ClientsAll = () => {
         </div>
       </div>
 
-      <ClientCreateDrawer isOpen={isCreateDrawerOpen} onClose={() => setIsCreateDrawerOpen(false)} />
+      <ClientCreateDrawer isOpen={isCreateDrawerOpen} onClose={() => { setIsCreateDrawerOpen(false); fetchClients(); }} />
     </div>
   );
 };

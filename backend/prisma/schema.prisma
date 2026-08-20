@@ -49,3 +49,14 @@ model OrderItem {
   quantity  Int
   price     Float
 }
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String?
+  phone     String   @unique
+  gender    String?
+  birthday  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

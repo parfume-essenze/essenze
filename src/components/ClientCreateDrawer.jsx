@@ -3,6 +3,38 @@ import { X, ChevronDown } from 'lucide-react';
 
 const ClientCreateDrawer = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('main');
+  const [formData, setFormData] = useState({
+    firstName: '', lastName: '', phone: '', gender: '', birthdayDay: '', birthdayMonth: '', birthdayYear: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!formData.firstName || !formData.phone) return alert('Заполните обязательные поля');
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: '+998 ' + formData.phone,
+          gender: formData.gender,
+          birthday: formData.birthdayDay ? `${formData.birthdayDay}.${formData.birthdayMonth}.${formData.birthdayYear}` : null
+        })
+      });
+      if (res.ok) {
+        setFormData({ firstName: '', lastName: '', phone: '', gender: '', birthdayDay: '', birthdayMonth: '', birthdayYear: '' });
+        onClose();
+      } else {
+        alert('Ошибка при создании клиента');
+      }
+    } catch (e) {
+      alert('Ошибка');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -73,11 +105,11 @@ const ClientCreateDrawer = ({ isOpen, onClose }) => {
                 <div style={{ display: 'flex', gap: '20px' }}>
                   <div className="form-group" style={{ flex: 1 }}>
                     <label>ИМЯ <span style={{color: 'red'}}>*</span></label>
-                    <input type="text" className="form-control" placeholder="Иван" />
+                    <input type="text" className="form-control" placeholder="Иван" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
                   </div>
                   <div className="form-group" style={{ flex: 1 }}>
                     <label>ФАМИЛИЯ</label>
-                    <input type="text" className="form-control" placeholder="Иванов" />
+                    <input type="text" className="form-control" placeholder="Иванов" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
                   </div>
                 </div>
 
@@ -90,19 +122,19 @@ const ClientCreateDrawer = ({ isOpen, onClose }) => {
                   <div className="form-group" style={{ flex: 1 }}>
                     <label>ДАТА РОЖДЕНИЯ</label>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <input type="text" className="form-control" placeholder="ДД" style={{width: '60px', textAlign: 'center'}} />
-                      <input type="text" className="form-control" placeholder="ММ" style={{width: '60px', textAlign: 'center'}} />
-                      <input type="text" className="form-control" placeholder="ГГГГ" style={{flex: 1}} />
+                      <input type="text" className="form-control" placeholder="ДД" style={{width: '60px', textAlign: 'center'}} value={formData.birthdayDay} onChange={e => setFormData({...formData, birthdayDay: e.target.value})} />
+                      <input type="text" className="form-control" placeholder="ММ" style={{width: '60px', textAlign: 'center'}} value={formData.birthdayMonth} onChange={e => setFormData({...formData, birthdayMonth: e.target.value})} />
+                      <input type="text" className="form-control" placeholder="ГГГГ" style={{flex: 1}} value={formData.birthdayYear} onChange={e => setFormData({...formData, birthdayYear: e.target.value})} />
                     </div>
                   </div>
                   <div className="form-group" style={{ flex: 1 }}>
                     <label>ПОЛ</label>
                     <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                        <input type="radio" name="gender" value="male" /> Мужской
+                        <input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={e => setFormData({...formData, gender: e.target.value})} /> Мужской
                       </label>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                        <input type="radio" name="gender" value="female" /> Женский
+                        <input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={e => setFormData({...formData, gender: e.target.value})} /> Женский
                       </label>
                     </div>
                   </div>
@@ -127,7 +159,7 @@ const ClientCreateDrawer = ({ isOpen, onClose }) => {
                       className="form-control" 
                       placeholder="90 123 45 67" 
                       style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
-                    />
+                      value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                   </div>
                 </div>
 
@@ -176,7 +208,7 @@ const ClientCreateDrawer = ({ isOpen, onClose }) => {
 
         <div className="drawer-footer" style={{ padding: '20px 30px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', gap: '15px', backgroundColor: 'var(--bg-primary)' }}>
           <button className="btn btn-outline" onClick={onClose}>Отмена</button>
-          <button className="btn btn-primary">Создать клиента</button>
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={isLoading}>{isLoading ? 'Создание...' : 'Создать клиента'}</button>
         </div>
       </div>
     </>

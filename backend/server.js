@@ -126,6 +126,38 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+// === CLIENTS API ===
+
+app.get('/api/clients', async (req, res) => {
+  try {
+    const clients = await prisma.client.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(clients);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch clients' });
+  }
+});
+
+app.post('/api/clients', async (req, res) => {
+  try {
+    const { firstName, lastName, phone, gender, birthday } = req.body;
+    const client = await prisma.client.create({
+      data: {
+        firstName,
+        lastName,
+        phone,
+        gender,
+        birthday
+      }
+    });
+    res.status(201).json(client);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create client' });
+  }
+});
+
 // React app catch-all handler (SPA routing)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));

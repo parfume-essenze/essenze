@@ -16,21 +16,11 @@ import {
   Printer
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { catalogData } from '../data/catalogData';
 
 const GoodsCatalog = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const navigate = useNavigate();
-
-  const catalogData = [
-    { id: 1, name: 'Shprits', article: 'SHPRITS', barcode: '2000000000343', category: 'Instrumentlar', supplier: '—' },
-    { id: 2, name: 'Good Girl Carolina Herrera', article: 'GOOD GIRL', barcode: 'ITM0783244', category: 'Essence', supplier: 'Essenza' },
-    { id: 3, name: 'Hidsiz suv', article: 'HIDSIZ', barcode: '2000000000336', category: 'Spirt', supplier: 'Essenza' },
-    { id: 4, name: 'Zip paket', article: 'ZIP PAKET', barcode: '2000000000329', category: 'Essence', supplier: 'Essenza' },
-    { id: 5, name: 'Chanel Chance eau Fraiche', article: 'CHANEL FRAICHE', barcode: 'ALL15910', category: 'Essence', supplier: 'Essenza' },
-    { id: 6, name: 'Molecule 020', article: 'MOLECULE 020', barcode: 'ITM0689978', category: 'Essence', supplier: 'Essenza' },
-    { id: 7, name: 'Kvadrat flakon 10ml', article: 'Kvadrat 10ml', barcode: '2000000000275', category: 'Flakon', supplier: 'OKIII Flakon' },
-    { id: 8, name: 'Absolu Aventus Creed Deluxe', article: 'ABSOLU AVENTUS', barcode: '2000000000355', category: 'Essence', supplier: 'Essenza' },
-  ];
 
   const handleRowClick = (product) => {
     setSelectedProduct(product);

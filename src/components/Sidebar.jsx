@@ -58,8 +58,8 @@ const Sidebar = () => {
     <aside className="sidebar">
       <div className="sidebar-header">
         <div className="brand">
-          <div className="brand-icon">Z</div>
-          <span>B I L L Z</span>
+          <div className="brand-icon">E</div>
+          <span>E S S E N Z E</span>
         </div>
         <div style={{color: 'var(--text-muted)', cursor: 'pointer'}}>«</div>
       </div>

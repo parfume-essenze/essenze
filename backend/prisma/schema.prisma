@@ -60,3 +60,23 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model CashShift {
+  id           Int       @id @default(autoincrement())
+  openedAt     DateTime  @default(now())
+  closedAt     DateTime?
+  startBalance Float     @default(0)
+  endBalance   Float?
+  status       String    @default("OPEN") // "OPEN", "CLOSED"
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          Int       @id @default(autoincrement())
+  shiftId     Int
+  shift       CashShift @relation(fields: [shiftId], references: [id])
+  type        String    // "INCOME", "EXPENSE", "INCASSATION"
+  amount      Float
+  description String?
+  createdAt   DateTime  @default(now())
+}

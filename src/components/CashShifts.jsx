@@ -1,6 +1,28 @@
 import { ChevronLeft, FileText, ArrowRight } from 'lucide-react';
 
 const CashShifts = () => {
+  const [shift, setShift] = useState(null);
+  
+  const loadShift = () => {
+    fetch('/api/shifts/current').then(r => r.json()).then(d => setShift(d)).catch(console.error);
+  };
+
+  useEffect(() => {
+    loadShift();
+  }, []);
+
+  const handleAction = async (action) => {
+    const balance = action === 'OPEN' ? prompt('Введите начальную сумму:') : prompt('Введите итоговую сумму в кассе:');
+    if (balance === null) return;
+    
+    await fetch('/api/shifts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, balance: parseFloat(balance) || 0 })
+    });
+    loadShift();
+  };
+
   const rows = [
     { type: 'Наличные' },
     { type: 'Карта' },

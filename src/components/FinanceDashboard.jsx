@@ -11,6 +11,10 @@ import {
 } from 'lucide-react';
 
 const FinanceDashboard = () => {
+  const [stats, setStats] = useState({ totalRevenue: 0, totalProfit: 0 });
+  useEffect(() => {
+    fetch('/api/reports/sales').then(r => r.json()).then(d => setStats(d)).catch(console.error);
+  }, []);
   return (
     <div className="page-body" style={{padding: '0'}}>
       <div className="page-header">

@@ -158,6 +158,76 @@ app.post('/api/clients', async (req, res) => {
   }
 });
 
+// === REPORTS & FINANCE API ===
+
+app.get('/api/reports/sales', async (req, res) => {
+  try {
+    const orders = await prisma.order.findMany({
+      include: {
+        orderItems: {
+          include: { product: true }
+        }
+      }
+    });
+
+    let totalRevenue = 0;
+    let totalCost = 0;
+
+    orders.forEach(order => {
+      totalRevenue += order.totalAmount;
+      order.orderItems.forEach(item => {
+        const cost = item.product.costPrice || 0;
+        totalCost += (cost * item.quantity);
+      });
+    });
+
+    res.json({
+      totalRevenue,
+      totalProfit: totalRevenue - totalCost,
+      orderCount: orders.length
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate report' });
+  }
+});
+
+app.get('/api/shifts/current', async (req, res) => {
+  try {
+    const shift = await prisma.cashShift.findFirst({
+      where: { status: 'OPEN' },
+      orderBy: { openedAt: 'desc' }
+    });
+    res.json(shift || null);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch shift' });
+  }
+});
+
+app.post('/api/shifts', async (req, res) => {
+  try {
+    const { action, balance } = req.body;
+    if (action === 'OPEN') {
+      const shift = await prisma.cashShift.create({
+        data: { startBalance: balance }
+      });
+      res.json(shift);
+    } else if (action === 'CLOSE') {
+      const shift = await prisma.cashShift.findFirst({ where: { status: 'OPEN' } });
+      if (shift) {
+        const closed = await prisma.cashShift.update({
+          where: { id: shift.id },
+          data: { status: 'CLOSED', closedAt: new Date(), endBalance: balance }
+        });
+        res.json(closed);
+      } else {
+        res.status(404).json({ error: 'No open shift' });
+      }
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to process shift' });
+  }
+});
+
 // React app catch-all handler (SPA routing)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));

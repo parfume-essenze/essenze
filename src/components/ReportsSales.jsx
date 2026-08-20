@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Filter, Download } from 'lucide-react';
 
 const ReportsSales = () => {
+  const [stats, setStats] = useState({ totalRevenue: 0, totalProfit: 0, orderCount: 0 });
+  useEffect(() => {
+    fetch('/api/reports/sales').then(r => r.json()).then(d => setStats(d)).catch(console.error);
+  }, []);
   return (
     <div className="finance-dashboard">
       <div className="dashboard-header">

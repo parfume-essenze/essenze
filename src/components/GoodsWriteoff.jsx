@@ -1,7 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, MoreVertical } from 'lucide-react';
 
 const GoodsWriteoff = () => {
+  const [ops, setOps] = useState([]);
+  
+  const loadOps = () => {
+    fetch('/api/inventory/operations').then(r => r.json()).then(d => setOps(d.filter(o => o.type === 'WRITEOFF'))).catch(console.error);
+  };
+
+  useEffect(() => {
+    loadOps();
+  }, []);
+
+  const handleCreate = async () => {
+    const productId = prompt('ID товара (для теста введите ID, например 1):');
+    if (!productId) return;
+    const qty = prompt('Количество на списание:');
+    if (!qty) return;
+    
+    await fetch('/api/inventory/writeoff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: parseInt(productId), quantity: parseInt(qty), reason: 'Брак' })
+    });
+    loadOps();
+  };
+
   return (
     <div className="finance-dashboard">
       <div className="dashboard-header">
@@ -27,7 +51,7 @@ const GoodsWriteoff = () => {
             />
           </div>
 
-          <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={handleCreate}>
             <Plus size={18} /> Новое списание
           </button>
         </div>

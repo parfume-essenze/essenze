@@ -26,6 +26,12 @@ const SalesNew = () => {
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  
+  useEffect(() => {
+    fetch('/api/clients').then(r => r.json()).then(d => setClients(d)).catch(console.error);
+  }, []);
 
   useEffect(() => {
     fetch('/api/products')
@@ -73,7 +79,8 @@ const SalesNew = () => {
         body: JSON.stringify({
           totalAmount: total,
           paymentType,
-          items: cart
+          items: cart,
+          clientId: selectedClient?.id
         })
       });
       if (res.ok) {

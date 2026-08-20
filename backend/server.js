@@ -126,6 +126,57 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+
+// === EMPLOYEES API ===
+app.get('/api/employees', async (req, res) => {
+  try {
+    const employees = await prisma.employee.findMany();
+    res.json(employees);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch employees' });
+  }
+});
+
+app.post('/api/employees', async (req, res) => {
+  try {
+    const employee = await prisma.employee.create({ data: req.body });
+    res.status(201).json(employee);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create employee' });
+  }
+});
+
+// === INVENTORY API ===
+app.get('/api/inventory/operations', async (req, res) => {
+  try {
+    const ops = await prisma.inventoryOperation.findMany({
+      include: { product: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(ops);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch ops' });
+  }
+});
+
+app.post('/api/inventory/writeoff', async (req, res) => {
+  try {
+    const { productId, quantity, reason } = req.body;
+    const op = await prisma.([
+      prisma.inventoryOperation.create({
+        data: { productId, quantity, reason, type: 'WRITEOFF' }
+      }),
+      prisma.product.update({
+        where: { id: productId },
+        data: { stock: { decrement: quantity } }
+      })
+    ]);
+    res.status(201).json(op[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to writeoff' });
+  }
+});
+
 // === CLIENTS API ===
 
 app.get('/api/clients', async (req, res) => {

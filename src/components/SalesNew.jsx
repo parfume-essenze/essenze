@@ -17,11 +17,78 @@ import {
   QrCode,
   Gift
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const SalesNew = () => {
   const [isNewClientOpen, setIsNewClientOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState('');
+  const [cart, setCart] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase()) || (p.barcode && p.barcode.includes(search)));
+
+  const addToCart = (product) => {
+    const existing = cart.find(item => item.id === product.id);
+    if (existing) {
+      setCart(cart.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item));
+    } else {
+      setCart([...cart, { ...product, qty: 1 }]);
+    }
+    setSearch('');
+  };
+
+  const updateQty = (id, delta) => {
+    setCart(cart.map(item => {
+      if (item.id === id) {
+        const newQty = item.qty + delta;
+        return newQty > 0 ? { ...item, qty: newQty } : item;
+      }
+      return item;
+    }));
+  };
+
+  const removeFromCart = (id) => {
+    setCart(cart.filter(item => item.id !== id));
+  };
+
+  const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+
+  const handleCheckout = async (paymentType) => {
+    if (cart.length === 0) return;
+    setIsProcessing(true);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          totalAmount: total,
+          paymentType,
+          items: cart
+        })
+      });
+      if (res.ok) {
+        alert('Заказ успешно оплачен!');
+        setCart([]);
+        setIsPaymentModalOpen(false);
+      } else {
+        alert('Ошибка при оплате');
+      }
+    } catch (err) {
+      alert('Ошибка соединения');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', height: '100%', backgroundColor: '#fff', position: 'relative' }}>
@@ -35,7 +102,7 @@ const SalesNew = () => {
               <Search size={18} />
             </div>
             <input 
-              type="text" 
+              type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Артикул, баркод, наименование" 
               style={{ 
                 width: '100%', 
@@ -73,7 +140,7 @@ const SalesNew = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <h1 style={{ fontSize: '2rem', fontWeight: '800', margin: 0 }}>Корзина</h1>
-            <div style={{ backgroundColor: '#f0f4f8', color: 'var(--text-muted)', padding: '2px 12px', borderRadius: '16px', fontWeight: '600' }}>0</div>
+            <div style={{ backgroundColor: '#f0f4f8', color: 'var(--text-muted)', padding: '2px 12px', borderRadius: '16px', fontWeight: '600' }}>{totalItems}</div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '16px', backgroundColor: '#f7f9fa', padding: '6px 16px', borderRadius: '24px' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>Оптовые цены</span>
@@ -94,12 +161,51 @@ const SalesNew = () => {
           </button>
         </div>
 
-        {/* Empty Cart Area */}
-        <div style={{ flex: 1, border: '1px solid var(--border-color)', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '12px' }}>Корзина пока что пуста</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1rem', textAlign: 'center', maxWidth: '300px', lineHeight: '1.5' }}>
-            Нажмите <span style={{ padding: '0 4px', border: '1px solid var(--border-color)', borderRadius: '4px', backgroundColor: '#f7f9fa' }}>/</span> для поиска товаров или отсканируйте товары
-          </p>
+        {/* Search Results or Cart Items */}
+        <div style={{ flex: 1, border: '1px solid var(--border-color)', borderRadius: '16px', display: 'flex', flexDirection: 'column', backgroundColor: '#fff', overflowY: 'auto' }}>
+          {search ? (
+            <div style={{ padding: '16px' }}>
+              <h3 style={{ marginBottom: '16px', color: 'var(--text-muted)' }}>Результаты поиска:</h3>
+              {filteredProducts.map(p => (
+                <div key={p.id} onClick={() => addToCart(p)} style={{ padding: '16px', borderBottom: '1px solid #f0f4f8', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontWeight: '600' }}>{p.name}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Арт: {p.sku} | Остаток: {p.stock}</div>
+                  </div>
+                  <div style={{ fontWeight: '700', color: 'var(--primary-color)' }}>{p.price} UZS</div>
+                </div>
+              ))}
+              {filteredProducts.length === 0 && <div style={{ color: 'var(--text-muted)' }}>Ничего не найдено</div>}
+            </div>
+          ) : cart.length > 0 ? (
+            <div style={{ padding: '16px' }}>
+              {cart.map((item, index) => (
+                <div key={item.id} style={{ display: 'flex', alignItems: 'center', padding: '16px', borderBottom: '1px solid #f0f4f8' }}>
+                  <div style={{ width: '32px', color: 'var(--text-muted)', fontWeight: '500' }}>{index + 1}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: '600' }}>{item.name}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.price} UZS</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                      <button onClick={() => updateQty(item.id, -1)} style={{ padding: '8px 12px', border: 'none', background: '#f7f9fa', cursor: 'pointer' }}>-</button>
+                      <div style={{ padding: '0 16px', fontWeight: '600' }}>{item.qty}</div>
+                      <button onClick={() => updateQty(item.id, 1)} style={{ padding: '8px 12px', border: 'none', background: '#f7f9fa', cursor: 'pointer' }}>+</button>
+                    </div>
+                    <div style={{ fontWeight: '700', width: '120px', textAlign: 'right' }}>{item.price * item.qty} UZS</div>
+                    <button onClick={() => removeFromCart(item.id)} style={{ background: 'none', border: 'none', color: 'var(--danger-color)', cursor: 'pointer' }}>✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '12px' }}>Корзина пока что пуста</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1rem', textAlign: 'center', maxWidth: '300px', lineHeight: '1.5' }}>
+                Введите текст для поиска товаров или отсканируйте товары
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Bottom Hints */}
@@ -184,7 +290,7 @@ const SalesNew = () => {
         <div style={{ marginTop: 'auto', paddingTop: '32px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
             <span style={{ color: 'var(--text-muted)', fontWeight: '500' }}>Подытог</span>
-            <span style={{ fontWeight: '700' }}>120 000 UZS</span>
+            <span style={{ fontWeight: '700' }}>{total} UZS</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
             <span style={{ color: 'var(--text-muted)', fontWeight: '500' }}>Скидка</span>
@@ -199,7 +305,7 @@ const SalesNew = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               ОПЛАТИТЬ <span style={{ fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.4)', padding: '2px 6px', borderRadius: '4px' }}>L</span>
             </div>
-            <span>120 000 UZS</span>
+            <span>{total} UZS</span>
           </button>
 
           <button className="btn" style={{ width: '100%', padding: '14px', borderRadius: '16px', color: 'var(--text-muted)', fontWeight: '600', border: 'none', backgroundColor: 'transparent', display: 'flex', justifyContent: 'center', gap: '8px' }}>
@@ -399,23 +505,23 @@ const SalesNew = () => {
                 <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>1. Stefano Ricci Royal Eagle Sport</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                   <span>1 г x 120000</span>
-                  <span>120 000 UZS</span>
+                  <span>{total} UZS</span>
                 </div>
                 <div style={{ borderBottom: '1px dashed #ccc', margin: '16px 0' }}></div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '16px' }}>
                   <span>Общее кол-во продуктов</span>
-                  <span>1 ед.</span>
+                  <span>{totalItems} ед.</span>
                 </div>
                 <div style={{ borderBottom: '1px dashed #ccc', margin: '16px 0' }}></div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontWeight: 'bold' }}>
                   <span>Подытог</span>
-                  <span>120 000 UZS</span>
+                  <span>{total} UZS</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', fontWeight: 'bold' }}>
                   <span>Итого</span>
-                  <span>120 000 UZS</span>
+                  <span>{total} UZS</span>
                 </div>
                 
                 {/* Barcode Placeholder */}
@@ -462,7 +568,7 @@ const SalesNew = () => {
               {/* Payment Methods Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 
-                <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: '#fff', border: '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer' }}>
+                <button onClick={() => handleCheckout('CASH')} disabled={isProcessing} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: '#fff', border: '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-main)', fontWeight: '600', fontSize: '1.1rem' }}>
                     <Banknote size={20} color="var(--primary-color)" /> Наличные 
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', border: '1px solid #e2e8f0', padding: '2px 6px', borderRadius: '4px', background: '#f7f9fa' }}>F1</span>
@@ -470,7 +576,7 @@ const SalesNew = () => {
                   <div style={{ color: 'var(--primary-color)' }}>+</div>
                 </button>
 
-                <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: '#fff', border: '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer' }}>
+                <button onClick={() => handleCheckout('CARD')} disabled={isProcessing} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: '#fff', border: '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-main)', fontWeight: '600', fontSize: '1.1rem' }}>
                     <CreditCard size={20} color="var(--primary-color)" /> Карта 
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', border: '1px solid #e2e8f0', padding: '2px 6px', borderRadius: '4px', background: '#f7f9fa' }}>F2</span>

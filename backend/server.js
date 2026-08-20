@@ -83,6 +83,49 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
+// === ORDERS API ===
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { totalAmount, paymentType, items } = req.body;
+    
+    // Create order and deduct stock in a transaction
+    const result = await prisma.$transaction(async (prisma) => {
+      const order = await prisma.order.create({
+        data: {
+          totalAmount: parseFloat(totalAmount),
+          paymentType,
+          orderItems: {
+            create: items.map(item => ({
+              productId: item.id,
+              quantity: item.qty,
+              price: item.price
+            }))
+          }
+        }
+      });
+
+      for (const item of items) {
+        await prisma.product.update({
+          where: { id: item.id },
+          data: {
+            stock: {
+              decrement: item.qty
+            }
+          }
+        });
+      }
+
+      return order;
+    });
+
+    res.status(201).json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to process order' });
+  }
+});
+
 // React app catch-all handler (SPA routing)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../dist', 'index.html'));

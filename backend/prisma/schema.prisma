@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -16,59 +16,60 @@ model Category {
 }
 
 model Product {
-  id           Int      @id @default(autoincrement())
-  name         String
-  sku          String   @unique
-  barcode      String?
-  price        Float
-  costPrice    Float?
-  stock        Int      @default(0)
-  categoryId   Int?
-  category     Category? @relation(fields: [categoryId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  orderItems   OrderItem[]
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  sku                String               @unique
+  barcode            String?
+  price              Float
+  costPrice          Float?
+  stock              Int                  @default(0)
+  categoryId         Int?
+  category           Category?            @relation(fields: [categoryId], references: [id])
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  orderItems         OrderItem[]
+  InventoryOperation InventoryOperation[]
 }
 
 model Order {
-  id           Int         @id @default(autoincrement())
-  totalAmount  Float
-  paymentType  String      @default("CASH") // "CASH", "CARD"
-  status       String      @default("COMPLETED")
-  orderItems   OrderItem[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id          Int         @id @default(autoincrement())
+  totalAmount Float
+  paymentType String      @default("CASH") // "CASH", "CARD"
+  status      String      @default("COMPLETED")
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model OrderItem {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   orderId   Int
-  order     Order    @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id])
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
   quantity  Int
   price     Float
 }
 
 model Client {
-  id        Int      @id @default(autoincrement())
-  firstName String
-  lastName  String?
-  phone     String   @unique
-  gender    String?
-  birthday  String?
-  cashbackBalance Float @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  firstName       String
+  lastName        String?
+  phone           String   @unique
+  gender          String?
+  birthday        String?
+  cashbackBalance Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model CashShift {
-  id           Int       @id @default(autoincrement())
-  openedAt     DateTime  @default(now())
+  id           Int           @id @default(autoincrement())
+  openedAt     DateTime      @default(now())
   closedAt     DateTime?
-  startBalance Float     @default(0)
+  startBalance Float         @default(0)
   endBalance   Float?
-  status       String    @default("OPEN") // "OPEN", "CLOSED"
+  status       String        @default("OPEN") // "OPEN", "CLOSED"
   transactions Transaction[]
 }
 
@@ -76,19 +77,18 @@ model Transaction {
   id          Int       @id @default(autoincrement())
   shiftId     Int
   shift       CashShift @relation(fields: [shiftId], references: [id])
-  type        String    // "INCOME", "EXPENSE", "INCASSATION"
+  type        String // "INCOME", "EXPENSE", "INCASSATION"
   amount      Float
   description String?
   createdAt   DateTime  @default(now())
 }
-
 
 model Employee {
   id        Int      @id @default(autoincrement())
   firstName String
   lastName  String?
   phone     String?
-  role      String   @default(SELLER) // ADMIN, SELLER
+  role      String   @default("SELLER") // ADMIN, SELLER
   branch    String?
   createdAt DateTime @default(now())
 }
@@ -97,7 +97,7 @@ model InventoryOperation {
   id        Int      @id @default(autoincrement())
   productId Int
   product   Product  @relation(fields: [productId], references: [id])
-  type      String   // WRITEOFF, TRANSFER
+  type      String // WRITEOFF, TRANSFER
   quantity  Int
   reason    String?
   createdAt DateTime @default(now())
